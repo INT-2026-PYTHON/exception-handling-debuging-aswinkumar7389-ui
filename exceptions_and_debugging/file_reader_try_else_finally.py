@@ -133,7 +133,6 @@ def read_numbers(path):
         # Attempt to open the file
         f = open(path, "r")
 
-        # Read and parse each line
         for line in f:
             line = line.strip()
             if line == "":
