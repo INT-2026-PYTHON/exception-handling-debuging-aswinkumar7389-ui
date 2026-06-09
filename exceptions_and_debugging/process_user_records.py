@@ -137,3 +137,65 @@ Explanation:
 =================================================
 
 """
+def process_records(records):
+    clean_records = []
+    error_log = []
+
+    for idx, record in enumerate(records):
+        try:
+            # risky operations: accessing keys and converting types
+            name = record["name"]
+            age = int(record["age"])
+            score = float(record["score"])
+
+        except (KeyError, TypeError) as e:
+            # multiple exception types handled together
+            error_log.append((idx, type(e).__name__, str(e)))
+
+        except ValueError as e:
+            # capture the exception object for its message
+            error_log.append((idx, type(e).__name__, str(e)))
+
+        else:
+            # runs only if no exception occurred
+            clean_records.append({"name": name, "age": age, "score": score})
+
+    return (clean_records, error_log)
+
+
+def process_strict(records):
+    try:
+        clean_records, error_log = process_records(records)
+        if error_log:
+            # re-raise a new exception summarizing failures
+            raise RuntimeError(f"{len(error_log)} record(s) failed to process") from None
+        return (clean_records, error_log)
+
+    except RuntimeError:
+        # bare raise preserves traceback if needed
+        raise
+
+
+# ---------------- DRIVER CODE ----------------
+if __name__ == "__main__":
+    records = [
+        {"name": "Alice", "age": "25",   "score": "88.5"},
+        {"name": "Bob",   "age": "abc",  "score": "70"},
+        {"name": "Carol", "age": "30"},            # missing "score"
+        "not a dict",                               # wrong type
+        {"name": "Dan",   "age": "40",   "score": "55.5"},
+    ]
+
+    # Normal processing
+    clean, errors = process_records(records)
+    print("Clean Records:")
+    print(clean)
+    print("Error Log:")
+    print(errors)
+
+    # Strict processing
+    try:
+        clean_strict, errors_strict = process_strict(records)
+        print("Strict Clean Records:", clean_strict)
+    except RuntimeError as e:
+        print("Strict mode raised:", e)
